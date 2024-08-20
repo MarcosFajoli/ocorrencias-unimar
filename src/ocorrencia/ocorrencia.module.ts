@@ -1,13 +1,17 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Ocorrencia } from './ocorrencia.entity';
 import { OcorrenciaService } from './ocorrencia.service';
 import { OcorrenciaController } from './ocorrencia.controller';
-import { UserModule } from '../user/user.module';
+import { Ocorrencia } from './ocorrencia.entity';
+import { UserModule } from '../user/user.module'; // Certifique-se de que isso está correto
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Ocorrencia]), UserModule], // Importa o repositório de Ocorrencia e o UserModule
-  providers: [OcorrenciaService], // Define o OcorrenciaService como um provider
-  controllers: [OcorrenciaController], // Define o OcorrenciaController
+  imports: [
+    TypeOrmModule.forFeature([Ocorrencia]),
+    UserModule, // Certifique-se de que isso está importado
+  ],
+  providers: [OcorrenciaService],
+  controllers: [OcorrenciaController],
+  exports: [TypeOrmModule]
 })
 export class OcorrenciaModule {}

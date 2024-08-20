@@ -2,15 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ocorrencia } from './ocorrencia.entity';
-import { User } from '../user/user.entity';
+import { User } from '../user/user.entity'; // Certifique-se de que isso esteja correto
 
 @Injectable()
 export class OcorrenciaService {
   constructor(
     @InjectRepository(Ocorrencia)
-    private ocorrenciaRepository: Repository<Ocorrencia>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly ocorrenciaRepository: Repository<Ocorrencia>,
+
+    @InjectRepository(User) // Certifique-se de que isso esteja correto
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async createOcorrencia(
