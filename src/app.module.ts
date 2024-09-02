@@ -7,14 +7,10 @@ import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '',
-      database: 'ocorrencias_unimar',
+      type: 'sqlite', // Altere o tipo de 'mysql' para 'sqlite'
+      database: 'database.sqlite', // Nome do arquivo SQLite
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+      synchronize: true, // Use 'true' apenas em desenvolvimento; 'false' em produção
     }),
     OcorrenciaModule,
     UserModule,
