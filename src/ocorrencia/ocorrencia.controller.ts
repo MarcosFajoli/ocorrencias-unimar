@@ -6,13 +6,18 @@ import {
   Param,
   Patch,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { OcorrenciaService } from './ocorrencia.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
 
 @Controller('ocorrencias')
 export class OcorrenciaController {
   constructor(private readonly ocorrenciaService: OcorrenciaService) {}
 
+  // Agora apenas usuários autenticados podem criar ocorrências
+  @UseGuards(JwtAuthGuard)
   @Post()
   createOcorrencia(
     @Body('descricao') descricao: string,
@@ -26,6 +31,9 @@ export class OcorrenciaController {
     );
   }
 
+  // Somente administradores podem ver todas as ocorrências
+  @UseGuards(JwtAuthGuard)
+  @Roles('admin')
   @Get()
   getOcorrencias(@Request() req) {
     return this.ocorrenciaService.getOcorrencias(req.user);
