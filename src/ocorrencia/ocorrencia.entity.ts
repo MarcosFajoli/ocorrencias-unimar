@@ -1,14 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 import { User } from '../user/user.entity';
+import { Resposta } from '../resposta/resposta.entity';
 
 @Entity()
 export class Ocorrencia {
   @PrimaryGeneratedColumn()
   id: number;
-
+  
   @Column()
   descricao: string;
-
+  
   @Column({ nullable: true })
   feedback?: string;
 
@@ -20,4 +21,7 @@ export class Ocorrencia {
 
   @ManyToOne(() => User, (user) => user.ocorrencias, { nullable: true })
   user: User;
+
+  @OneToMany(() => Resposta, (resposta) => resposta.ocorrencia)
+  respostas: Resposta[];
 }

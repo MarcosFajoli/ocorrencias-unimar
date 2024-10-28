@@ -39,7 +39,7 @@ export class OcorrenciaService {
     } else if (user.role === 'staff') {
       return this.ocorrenciaRepository.find({ where: { status: 'pendente' } });
     } else {
-      return this.ocorrenciaRepository.find({ where: { user: user } });
+      return this.ocorrenciaRepository.find({ where: { user: { id: user.id } } });
     }
   }
 
