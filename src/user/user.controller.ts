@@ -31,7 +31,7 @@ export class UserController {
   @Get(':id')
   @Roles('admin')
   findOne(@Param('id') id: number, @User() user: any): Promise<UserEntity> {
-    if (user.role === 'admin' || user.userId == id)
+    if (user.role === 'admin' || user.id == id)
       return this.userService.findOne(id);
     throw new ForbiddenException('You do not have access to this resource');
   }
@@ -66,7 +66,7 @@ export class UserController {
     @User() user: any,
     @Body() updateData: Partial<UserEntity>,
   ): Promise<UserEntity> {
-    if (user.role === 'admin' || user.userId === id)
+    if (user.role === 'admin' || user.id === id)
       return this.userService.updateUser(id, updateData);
     throw new ForbiddenException('Você não possui acesso a esse recurso');
   }
@@ -75,7 +75,7 @@ export class UserController {
   @Delete(':id')
   @Roles('admin')
   deleteUser(@Param('id') id: number, @User() user: any): Promise<void> {
-    if (user.role === 'admin' || user.userId === id)
+    if (user.role === 'admin' || user.id === id)
       return this.userService.deleteUser(id);
     throw new ForbiddenException('Você não possui acesso a esse recurso');
   }

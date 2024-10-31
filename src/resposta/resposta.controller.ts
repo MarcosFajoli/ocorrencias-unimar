@@ -13,7 +13,7 @@ export class RespostaController {
     @Body('texto') texto: string,
     @Body('ocorrenciaId') ocorrenciaId: number,
     @Request() req,
-  ): Promise<Resposta> {
+  ) {
     return this.respostaService.create(texto, ocorrenciaId, req.user.id);
   }
 

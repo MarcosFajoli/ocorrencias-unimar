@@ -16,18 +16,26 @@ export class RespostaService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) {}
+  ) { }
 
-  async create(texto: string, ocorrenciaId: number, userId: number): Promise<Resposta> {
-    const ocorrencia = await this.ocorrenciaRepository.findOne({ where: { id: ocorrenciaId } });
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+  async create(texto: string, ocorrenciaId: number, userId: number) {
+    try {
+      const ocorrencia = await this.ocorrenciaRepository.findOne({ where: { id: ocorrenciaId } });
+      const user = await this.userRepository.findOne({ where: { id: userId } });
 
-    if (!ocorrencia || !user) {
-      throw new Error('Ocorrência ou usuário não encontrados');
+      if (!ocorrencia || !user) {
+        throw new Error('Ocorrência ou usuário não encontrados');
+      }
+
+      const resposta = this.respostaRepository.create({ texto, ocorrencia, user });
+      const respostaSalva = this.respostaRepository.save(resposta);
+
+      console.log(respostaSalva)
+
+      return { message: "Resposta registrada com sucesso" }
+    } catch (error) {
+      throw new Error('Erro ao responder');
     }
-
-    const resposta = this.respostaRepository.create({ texto, ocorrencia, user });
-    return this.respostaRepository.save(resposta);
   }
 
   async findAll(): Promise<Resposta[]> {

@@ -33,10 +33,15 @@ export class OcorrenciaController {
 
   // Somente administradores podem ver todas as ocorrências
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
   @Get()
   getOcorrencias(@Request() req) {
     return this.ocorrenciaService.getOcorrencias(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findById(@Param('id') id: number) {
+    return this.ocorrenciaService.findById(id);
   }
 
   @Patch(':id/feedback')

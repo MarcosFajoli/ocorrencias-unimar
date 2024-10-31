@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ocorrencia } from './ocorrencia.entity';
@@ -12,25 +12,32 @@ export class OcorrenciaService {
 
     @InjectRepository(User) // Certifique-se de que isso esteja correto
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async createOcorrencia(
     descricao: string,
     userId: number,
     isAnonima: boolean,
   ) {
-    const ocorrencia = new Ocorrencia();
-    ocorrencia.descricao = descricao;
-    ocorrencia.isAnonima = isAnonima;
-    ocorrencia.status = 'pendente';
+    try {
+      const ocorrencia = new Ocorrencia();
+      ocorrencia.descricao = descricao;
+      ocorrencia.isAnonima = isAnonima;
+      ocorrencia.status = 'pendente';
 
-    if (!isAnonima) {
-      // Corrigido para buscar usuário por ID
-      const user = await this.userRepository.findOne({ where: { id: userId } });
-      ocorrencia.user = user;
+      if (!isAnonima) {
+        // Corrigido para buscar usuário por ID
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        ocorrencia.user = user;
+      }
+
+      await this.ocorrenciaRepository.save(ocorrencia);
+
+      return { message: 'Ocorrência criada com sucesso' }
+    } catch (error) {
+      console.log(error)
+      throw new BadRequestException("Não foi possível criar sua ocorrência. Contate o administrador.")
     }
-
-    return this.ocorrenciaRepository.save(ocorrencia);
   }
 
   async getOcorrencias(user: User) {
@@ -39,10 +46,27 @@ export class OcorrenciaService {
     } else if (user.role === 'staff') {
       return this.ocorrenciaRepository.find({ where: { status: 'pendente' } });
     } else {
-      return this.ocorrenciaRepository.find({ where: { user: { id: user.id } } });
+      return this.ocorrenciaRepository.find({ where: { id: user.id } });
     }
   }
 
+  async findById(id: number) {
+    const ocorrenciaWithrespostas = await this.ocorrenciaRepository.findOne({ where: { id }, relations: ['user', 'respostas', 'respostas.user'] });
+    const { id: idOcorrencia, descricao, isAnonima, respostas: respostasUnfiltered, user } = ocorrenciaWithrespostas;
+
+    const respostas = respostasUnfiltered
+      .map((resposta) => ({
+        userId: resposta.user.id,
+        userName: resposta.user.name,
+        userEmail: resposta.user.name,
+        texto: resposta.texto,
+        dataCriacao: resposta.dataCriacao,
+      }));
+
+    const {id: userId, name: userName, email: userEmail} = user;
+
+    return { idOcorrencia, userId, userName, userEmail, descricao, isAnonima, respostas };
+  }
   async updateFeedback(ocorrenciaId: number, feedback: string) {
     const ocorrencia = await this.ocorrenciaRepository.findOne({
       where: { id: ocorrenciaId },
