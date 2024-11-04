@@ -12,7 +12,7 @@ export class OcorrenciaService {
 
     @InjectRepository(User) // Certifique-se de que isso esteja correto
     private readonly userRepository: Repository<User>,
-  ) { }
+  ) {}
 
   async createOcorrencia(
     descricao: string,
@@ -25,47 +25,105 @@ export class OcorrenciaService {
       ocorrencia.isAnonima = isAnonima;
       ocorrencia.status = 'pendente';
 
-      if (!isAnonima) {
-        // Corrigido para buscar usuário por ID
-        const user = await this.userRepository.findOne({ where: { id: userId } });
-        ocorrencia.user = user;
-      }
+      // if (!isAnonima) {
+      // Corrigido para buscar usuário por ID
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+      ocorrencia.user = user;
+      // }
 
       await this.ocorrenciaRepository.save(ocorrencia);
 
-      return { message: 'Ocorrência criada com sucesso' }
+      return { message: 'Ocorrência criada com sucesso' };
     } catch (error) {
-      console.log(error)
-      throw new BadRequestException("Não foi possível criar sua ocorrência. Contate o administrador.")
+      console.log(error);
+      throw new BadRequestException(
+        'Não foi possível criar sua ocorrência. Contate o administrador.',
+      );
     }
   }
 
   async getOcorrencias(user: User) {
     if (user.role === 'admin') {
-      return this.ocorrenciaRepository.find();
+      return this.ocorrenciaRepository.find({
+        relations: ['user'],
+        select: {
+          id: true,
+          descricao: true,
+          isAnonima: true,
+          user: {
+            id: true,
+            name: true,
+            studentRegister: true,
+          },
+        },
+      });
     } else if (user.role === 'staff') {
-      return this.ocorrenciaRepository.find({ where: { status: 'pendente' } });
+      return this.ocorrenciaRepository.find({
+        where: { status: 'pendente' },
+        relations: ['user'],
+        select: {
+          id: true,
+          descricao: true,
+          isAnonima: true,
+          user: {
+            id: true,
+            name: true,
+            studentRegister: true,
+          },
+        },
+      });
     } else {
-      return this.ocorrenciaRepository.find({ where: { id: user.id } });
+      return this.ocorrenciaRepository.find({
+        where: { user: { id: user.id } },
+        relations: ['user'],
+        select: {
+          id: true,
+          descricao: true,
+          isAnonima: true,
+          user: {
+            id: true,
+            name: true,
+            studentRegister: true,
+          },
+        },
+      });
     }
   }
 
   async findById(id: number) {
-    const ocorrenciaWithrespostas = await this.ocorrenciaRepository.findOne({ where: { id }, relations: ['user', 'respostas', 'respostas.user'] });
-    const { id: idOcorrencia, descricao, isAnonima, respostas: respostasUnfiltered, user } = ocorrenciaWithrespostas;
+    const ocorrenciaWithrespostas = await this.ocorrenciaRepository.findOne({
+      where: { id },
+      relations: ['user', 'respostas', 'respostas.user'],
+    });
+    const {
+      id: idOcorrencia,
+      descricao,
+      isAnonima,
+      respostas: respostasUnfiltered,
+      user,
+    } = ocorrenciaWithrespostas;
 
-    const respostas = respostasUnfiltered
-      .map((resposta) => ({
-        userId: resposta.user.id,
-        userName: resposta.user.name,
-        userEmail: resposta.user.name,
-        texto: resposta.texto,
-        dataCriacao: resposta.dataCriacao,
-      }));
+    const respostas = respostasUnfiltered.map((resposta) => ({
+      userId: resposta.user.id,
+      userName: resposta.user.name,
+      userEmail: resposta.user.name,
+      texto: resposta.texto,
+      dataCriacao: resposta.dataCriacao,
+    }));
 
-    const {id: userId, name: userName, email: userEmail} = user;
+    const { id: userId, name: userName, email: userEmail } = user;
 
-    return { idOcorrencia, userId, userName, userEmail, descricao, isAnonima, respostas };
+    return {
+      idOcorrencia,
+      userId,
+      userName,
+      userEmail,
+      descricao,
+      isAnonima,
+      respostas,
+    };
   }
   async updateFeedback(ocorrenciaId: number, feedback: string) {
     const ocorrencia = await this.ocorrenciaRepository.findOne({
