@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ocorrencia } from './ocorrencia.entity';
@@ -93,38 +98,54 @@ export class OcorrenciaService {
   }
 
   async findById(id: number) {
-    const ocorrenciaWithrespostas = await this.ocorrenciaRepository.findOne({
-      where: { id },
-      relations: ['user', 'respostas', 'respostas.user'],
-    });
-    const {
-      id: idOcorrencia,
-      descricao,
-      isAnonima,
-      respostas: respostasUnfiltered,
-      user,
-    } = ocorrenciaWithrespostas;
+    try {
+      const ocorrenciaWithrespostas = await this.ocorrenciaRepository.findOne({
+        where: { id },
+        relations: ['user', 'respostas', 'respostas.user'],
+      });
 
-    const respostas = respostasUnfiltered.map((resposta) => ({
-      userId: resposta.user.id,
-      userName: resposta.user.name,
-      userEmail: resposta.user.name,
-      texto: resposta.texto,
-      dataCriacao: resposta.dataCriacao,
-    }));
+      if (!ocorrenciaWithrespostas) {
+        throw new HttpException(
+          'Ocorrência não encontrada!',
+          HttpStatus.NOT_FOUND,
+        );
+      }
 
-    const { id: userId, name: userName, email: userEmail } = user;
+      const {
+        id: idOcorrencia,
+        descricao,
+        isAnonima,
+        respostas: respostasUnfiltered,
+        user,
+      } = ocorrenciaWithrespostas;
 
-    return {
-      idOcorrencia,
-      userId,
-      userName,
-      userEmail,
-      descricao,
-      isAnonima,
-      respostas,
-    };
+      const respostas = respostasUnfiltered.map((resposta) => ({
+        userId: resposta.user.id,
+        userName: resposta.user.name,
+        userEmail: resposta.user.email,
+        texto: resposta.texto,
+        dataCriacao: resposta.dataCriacao,
+      }));
+
+      const { id: userId, name: userName, email: userEmail } = user;
+
+      return {
+        idOcorrencia,
+        userId,
+        userName,
+        userEmail,
+        descricao,
+        isAnonima,
+        respostas,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Ocorreu um erro ao buscar a ocorrência!',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
+
   async updateFeedback(ocorrenciaId: number, feedback: string) {
     const ocorrencia = await this.ocorrenciaRepository.findOne({
       where: { id: ocorrenciaId },
